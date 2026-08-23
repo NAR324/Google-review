@@ -157,6 +157,29 @@
     margin-bottom: 18px;
   }
   #step2 { display: none; }
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .chip {
+    border: 1.5px solid #e2e0d8;
+    background: #fafaf7;
+    color: #555;
+    padding: 9px 14px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .chip.selected {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: #fff;
+    font-weight: 600;
+  }
   .box-label {
     font-size: 13px;
     color: #888;
@@ -287,6 +310,17 @@
       <span class="star" data-value="5">&#9733;</span>
     </div>
     <div class="rating-label" id="ratingLabel">Tap a star to rate us</div>
+
+    <div id="categorySection" style="display:none;">
+      <div class="box-label" id="categoryLabel">What stood out? (optional)</div>
+      <div class="chip-row" id="chipRow">
+        <span class="chip" data-cat="variety">Product Variety</span>
+        <span class="chip" data-cat="pricing">Pricing / Value</span>
+        <span class="chip" data-cat="billing">Billing Speed</span>
+        <span class="chip" data-cat="cleanliness">Store Cleanliness</span>
+      </div>
+      <button class="action-btn btn-primary" onclick="showStep2()">Continue</button>
+    </div>
   </div>
 
   <div id="step2">
@@ -585,15 +619,87 @@ const serviceClosers = {
   ]
 };
 
+// Category-specific phrase pools. Positive tone scales with rating; for 1-2 star,
+// phrases lean toward "needs improvement" even when a category is picked.
+const categoryPhrases = {
+  variety: {
+    good: [
+      "The range of clothing, toys, and stationery was impressive.",
+      "Loved the variety across categories, something for everyone.",
+      "Great selection, found exactly what I was looking for.",
+      "Good mix of styles and options to choose from."
+    ],
+    bad: [
+      "The variety on offer felt quite limited.",
+      "Stock selection needs to be broader across categories.",
+      "Struggled to find enough options in the section I needed.",
+      "Product range could use significant improvement."
+    ]
+  },
+  pricing: {
+    good: [
+      "Prices were very reasonable for the quality offered.",
+      "Good value for money on most items.",
+      "Pricing felt fair compared to other stores in Bettiah.",
+      "Affordable options without compromising on quality."
+    ],
+    bad: [
+      "Pricing felt a bit on the higher side for what's offered.",
+      "Would appreciate more competitive pricing.",
+      "Value for money could be better.",
+      "Some items felt overpriced compared to similar stores."
+    ]
+  },
+  billing: {
+    good: [
+      "Billing was quick and hassle-free.",
+      "Checkout process was smooth with no waiting.",
+      "Fast and efficient billing counter.",
+      "In and out quickly thanks to smooth billing."
+    ],
+    bad: [
+      "Billing counter took longer than expected.",
+      "Had to wait quite a while just to check out.",
+      "Checkout process needs to be faster.",
+      "Billing speed could definitely be improved."
+    ]
+  },
+  cleanliness: {
+    good: [
+      "The store was clean and well-organised throughout.",
+      "Loved how tidy and well-maintained the store was.",
+      "Clean, well-lit, and pleasant to shop in.",
+      "Store upkeep was excellent."
+    ],
+    bad: [
+      "The store could be kept a bit cleaner.",
+      "Store upkeep needs some attention.",
+      "Aisles felt a little cluttered and disorganised.",
+      "Cleanliness is an area that needs improvement."
+    ]
+  }
+};
+
 function pickTemplate() {
   const o = openers[currentRating][Math.floor(Math.random() * openers[currentRating].length)];
-  const p = productMentions[currentRating][Math.floor(Math.random() * productMentions[currentRating].length)];
   const s = serviceClosers[currentRating][Math.floor(Math.random() * serviceClosers[currentRating].length)];
-  return o + " " + p + " " + s;
+  const tone = currentRating >= 4 ? 'good' : (currentRating === 3 ? (Math.random() < 0.5 ? 'good' : 'bad') : 'bad');
+
+  let middle;
+  if (selectedCategories.length > 0) {
+    middle = selectedCategories.map(cat => {
+      const pool = categoryPhrases[cat][tone];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }).join(" ");
+  } else {
+    middle = productMentions[currentRating][Math.floor(Math.random() * productMentions[currentRating].length)];
+  }
+  return o + " " + middle + " " + s;
 }
 
 let currentRating = 0;
 let currentTemplateIndex = 0;
+let selectedCategories = [];
 
 const stars = document.querySelectorAll('.star');
 const ratingLabel = document.getElementById('ratingLabel');
@@ -604,7 +710,25 @@ stars.forEach(star => {
     currentRating = parseInt(star.getAttribute('data-value'));
     highlightStars(currentRating);
     ratingLabel.textContent = labels[currentRating];
-    setTimeout(showStep2, 350);
+    document.getElementById('categorySection').style.display = 'block';
+    const catLabel = document.getElementById('categoryLabel');
+    catLabel.textContent = currentRating >= 4
+      ? "What did you love? (optional)"
+      : (currentRating === 3
+        ? "What stood out? (optional)"
+        : "What could we improve? (optional)");
+  });
+});
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('selected');
+    const cat = chip.getAttribute('data-cat');
+    if (chip.classList.contains('selected')) {
+      if (!selectedCategories.includes(cat)) selectedCategories.push(cat);
+    } else {
+      selectedCategories = selectedCategories.filter(c => c !== cat);
+    }
   });
 });
 
@@ -667,7 +791,10 @@ function updateWhatsappLink() {
 function goBack() {
   document.getElementById('step2').style.display = 'none';
   document.getElementById('step1').style.display = 'block';
+  document.getElementById('categorySection').style.display = 'none';
   currentRating = 0;
+  selectedCategories = [];
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
   highlightStars(0);
   ratingLabel.textContent = "Tap a star to rate us";
 }
