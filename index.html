@@ -8,7 +8,9 @@
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: radial-gradient(circle at 20% 0%, #fff9e6 0%, #f5f7fb 260px, #f5f7fb 100%);
+    background:
+      radial-gradient(circle at 20% 0%, #fff9e6 0%, #f5f7fb 260px, #f5f7fb 100%),
+      repeating-linear-gradient(135deg, rgba(13,59,140,0.025) 0px, rgba(13,59,140,0.025) 2px, transparent 2px, transparent 40px);
     margin: 0;
     padding: 24px 16px;
     display: flex;
@@ -106,34 +108,6 @@
     margin-bottom: 22px;
     font-weight: 500;
   }
-  .offer-banner {
-    margin: 18px 22px 0;
-    background: linear-gradient(120deg, #fff9db, #ffefa8);
-    border: 1.5px dashed #e0b400;
-    border-radius: 14px;
-    padding: 13px 14px;
-    text-align: center;
-    display: none;
-  }
-  .offer-banner.show { display: block; }
-  .offer-title {
-    font-size: 12.5px;
-    font-weight: 800;
-    color: #8a6a00;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 3px;
-  }
-  .offer-text {
-    font-size: 14.5px;
-    color: #5f4900;
-    font-weight: 700;
-  }
-  .offer-note {
-    font-size: 11.5px;
-    color: #a5822a;
-    margin-top: 4px;
-  }
   .stars {
     display: flex;
     justify-content: center;
@@ -147,7 +121,13 @@
     transition: transform 0.15s;
     user-select: none;
   }
-  .star.active { color: #ffd600; text-shadow: 0 1px 3px rgba(224,180,0,0.4); }
+  .star.active { color: #ffd600; text-shadow: 0 1px 3px rgba(224,180,0,0.4); animation: starPop 0.35s ease; }
+  @keyframes starPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3) rotate(-6deg); }
+    70% { transform: scale(0.95) rotate(3deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
   .star:active { transform: scale(1.15); }
   .rating-label {
     text-align: center;
@@ -277,6 +257,28 @@
     cursor: pointer;
     text-decoration: underline;
   }
+  .footer-flourish {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px dashed #e5e0d0;
+  }
+  .flourish-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ffd600;
+  }
+  .flourish-text {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b8b0a0;
+    font-weight: 700;
+  }
 </style>
 </head>
 <body>
@@ -291,12 +293,6 @@
     <div class="tagline">Stay Stylish. Stay You.</div>
   </div>
   <div class="gold-strip"></div>
-
-  <div id="offerBanner" class="offer-banner">
-    <div class="offer-title">Special offer</div>
-    <div class="offer-text" id="offerText">Get 10% off your next purchase!</div>
-    <div class="offer-note">Show this screen at the counter after submitting your review.</div>
-  </div>
 
   <div class="body-pad">
   <div class="sub">How was your experience with us?</div>
@@ -331,13 +327,13 @@
     <div id="copiedMsg" class="copied-msg">&#10003; Copied! Now open Google and paste it in the review box.</div>
 
     <div id="highRatingActions" style="display:none;">
-      <a href="#" id="googleBtn" class="action-btn btn-primary" target="_blank">Copy text &amp; open Google Reviews</a>
+      <a href="#" id="googleBtn" class="action-btn btn-primary" target="_blank" rel="noopener noreferrer">Copy text &amp; open Google Reviews</a>
       <div class="hint">Step 1: Tap the button above to copy your review.<br>Step 2: Tap "Write a review" on the page that opens.<br>Step 3: Long-press the empty box and tap "Paste".</div>
     </div>
 
     <div id="lowRatingActions" style="display:none;">
-      <a href="#" id="whatsappBtn" class="action-btn btn-whatsapp" target="_blank">Send feedback to us on WhatsApp</a>
-      <a href="#" id="googleBtnLow" class="action-btn btn-secondary" target="_blank">Or copy text &amp; post publicly on Google</a>
+      <a href="#" id="whatsappBtn" class="action-btn btn-whatsapp" target="_blank" rel="noopener noreferrer">Send feedback to us on WhatsApp</a>
+      <a href="#" id="googleBtnLow" class="action-btn btn-secondary" target="_blank" rel="noopener noreferrer">Or copy text &amp; post publicly on Google</a>
       <div class="hint">We'd rather hear it directly first so we can fix it &mdash; but the choice is yours.</div>
     </div>
 
@@ -345,16 +341,21 @@
       <button onclick="goBack()">&larr; Change rating</button>
     </div>
   </div>
+
+  <div class="footer-flourish">
+    <span class="flourish-dot"></span>
+    <span class="flourish-text">MetroKart &bull; Bettiah</span>
+    <span class="flourish-dot"></span>
+  </div>
   </div>
 </div>
 
 <script>
 // ====== CONFIGURE THESE ======
-const GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/niDeyQrndhk1cLsx6?g_st=ic";
-const WHATSAPP_NUMBER = "918796383066"; // country code + number, no + or spaces
-
-const SHOW_OFFER = false; // set to false to hide the offer banner completely
-const OFFER_TEXT = "Get 10% off your next purchase!"; // edit this to whatever offer you want
+// Values below are base64-encoded so they don't sit as plain readable text in page source.
+// This is light obfuscation, not real security -- a determined user could still decode it.
+const GOOGLE_REVIEW_LINK = atob("aHR0cHM6Ly9tYXBzLmFwcC5nb28uZ2wvbmlEZXlRcm5kaGsxY0xzeDY/Z19zdD1pYw==");
+const WHATSAPP_NUMBER = atob("OTE4Nzk2MzgzMDY2"); // decoded at runtime
 // ================================
 
 // Component-based generator: mixes openers + specifics + closers
@@ -748,11 +749,6 @@ function showStep2() {
   document.getElementById('step2').style.display = 'block';
   const text = pickTemplate();
   document.getElementById('reviewText').value = text;
-
-  if (SHOW_OFFER) {
-    document.getElementById('offerText').textContent = OFFER_TEXT;
-    document.getElementById('offerBanner').classList.add('show');
-  }
 
   const highActions = document.getElementById('highRatingActions');
   const lowActions = document.getElementById('lowRatingActions');
